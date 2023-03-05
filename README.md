@@ -1,64 +1,147 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400"></a></p>
+# Desafio TiTa Therapy
+O desafio consiste em receber um JSON através de um POST e retornar outro JSON com os dados tratados. O objetivo é fornecer os dados para montar um gráfico pizza. O JSON recebido contém um nome e um valor, como o do exemplo:
 
-<p align="center">
-<a href="https://travis-ci.org/laravel/framework"><img src="https://travis-ci.org/laravel/framework.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+    {"Hausa": 4, "Yoruba" : 5, "Igbo" : 6, "Efik" : 1, "Edo" : 4}
 
-## About Laravel
+Após receber os números, deve-se fornecer o valor equivalente ao ângulo do item no gráfico, dessa forma:
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+    {"Hausa":72,"Yoruba":90,"Igbo":108,"Efik":18,"Edo":72}
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+## Instação e configuração
+Além de devolver os dados tratados, decidi também gravar os dados recebidos num banco de dados mySQL, portanto são necessárias algumas configurações no ambiente.
 
-## Learning Laravel
+### Configurando o ambiente
+Serão necessárias algumas ferramentas. No meu caso, usei o Docker para rodar o MySQL junto com o Postman para simular uma requisição. 
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+#### Criando um banco de dados mySQL: 
+Será necessário ter o docker instalado. Caso não tenha, pode seguir a documentação: https://docs.docker.com/get-docker/
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains over 1500 video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+#### 1. Crie um contêiner MySQL, usando o seguinte comando:
+      
+    docker run -p 3306:3306 --name <nome-do-container> -e MYSQL_ROOT_PASSWORD=<senha-do-root> -d mysql
 
-## Laravel Sponsors
+Esse código cria um container na porta 3306 definida com a flag `-p 3306:3306`, define o nome através da flag `--name <nome-do-container>`, define a senha do usuário root com a flag `-e MYSQL_ROOT_PASSWORD=<senha-do-root>`, roda como um daemon com a flag `-d` e seleciona a imagem do mysql.
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the Laravel [Patreon page](https://patreon.com/taylorotwell).
+#### 2. Acesse o container MySQL criado:
 
-### Premium Partners
+    docker exec -it <nome-do-container> mysql -p
 
-- **[Vehikl](https://vehikl.com/)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Cubet Techno Labs](https://cubettech.com)**
-- **[Cyber-Duck](https://cyber-duck.co.uk)**
-- **[Many](https://www.many.co.uk)**
-- **[Webdock, Fast VPS Hosting](https://www.webdock.io/en)**
-- **[DevSquad](https://devsquad.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel/)**
-- **[OP.GG](https://op.gg)**
-- **[WebReinvent](https://webreinvent.com/?utm_source=laravel&utm_medium=github&utm_campaign=patreon-sponsors)**
-- **[Lendio](https://lendio.com)**
+Com esse comando o MySQL estará disponível no prompt ou terminal usado. É necessário lembrar que ele solicitará a senha após o comando. As flags `-it` e `-p` são necessárias, pois a primeira permite que o shell do MySQL seja acessado e a segunda serve para o MySQL ser notificado que a conexão é via terminal.
 
-## Contributing
+#### 3. Criando banco de dados: 
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+    CREATE DATABASE <nome_do_banco>;
 
-## Code of Conduct
+Comando para criar banco de dados na sintaxe do SQL.
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+### Configurando o projeto
 
-## Security Vulnerabilities
+#### 1. Clone o projeto ou faça download do zip a partir do repositório.
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+#### 2. Instale as dependências do projeto usando o Composer.
 
-## License
+    composer install
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+Para esse passo é necessário o gerenciador de pacotes Composer. Caso não tenha, pode seguir a documentação:
+https://getcomposer.org/doc/00-intro.md#installation-windows
+
+#### 3. Configurar o arquivo .env:
+Copie o arquivo `.env.example` para `.env`. Modifique as variáveis do *DB* para as setadas no seu ambiente, como o nome do banco a porta utilizada e a senha do usuário root.
+
+
+#### 4. Gerar as migrações: 
+
+    php artisan migrate
+
+Esse código irá executar as migrações do banco de dados e criar as tabelas necessárias.
+
+#### 5. Rodar a aplicação localmente:
+
+    php artisan serve
+    
+Por default, a porta escolhida será a 8000, mas usando a flag `--port` você pode definir a porta.
+
+
+## Como usar a API
+A API tem apenas uma rota configurada: `POST /angles`
+
+#### Gerando os ângulos
+Para gerar o ângulo, a requisição enviada deve ser do tipo **POST** e deve ser enviada para o url `localhost:<porta-do-projeto>/api/angles`. O Objeto JSON deve ser passado no **body** da requisição e seguir o seguinte formato:
+  
+    {seção1 : 2, seção2: 3, seção3: 2}
+
+Onde cada chave vai corresponder ao nome da seção no gráfico e o valor a quantia dessa seção. O objeto passado pelo POST será salvo no banco de dados e a resposta da API será um objeto JSON com o nome passado e o valor correspondente ao ângulo no gráfico.
+ 
+#### Exemplo de requisição:
+Usando o Postman:
+  
+  ![image](https://user-images.githubusercontent.com/86268949/222932746-9c3c12b0-7ea0-43b8-816a-4f942aed814f.png)
+
+#### Exemplo de resposta:
+![image](https://user-images.githubusercontent.com/86268949/222932772-0219e497-d738-46ec-b8fa-c82a59f23651.png)
+
+ ## Considerações:
+ Decidi usar o Laravel para fazer a API, portanto meu primeiro passo foi rodar o comando:
+    
+    $ composer create-project --prefer-dist laravel/laravel teste_tita
+  
+  Logo após, precisei criar uma função PHP responsável por receber o JSON e tratar os dados recebidos, fiz isso da seguinte maneira:
+  
+  ~~~~PHP
+  function findAngles(array $map): array{
+  $angles= [];
+  $total = array_sum($map);
+  foreach($map as  $key => $value){
+    $angle = round(($value / $total) * 360, 2);
+    $angles[$key] = $angle;
+  }
+  return $angles;
+}
+  ~~~~
+  
+  - Nessa função, recebo e retorno um array, o primeiro passo da função é criar um array que será retornado após receber todos os dados do array `$map`, parâmetro da função.
+  - Em seguida eu usei um método para somar todos os valores desse array e guardei dentro da variável `$total`, fiz isso para poder calcular proporcionalmente o ângulo de cada seção.
+  - Utilizando o laço foreach no array `$map` e usando o operador `=>` para associar o índice, que no caso seria o nome fornecido no JSON com o respectivo valor, guardei a chave na variável `$key` e o valor na `$value`. Dentro do laço vou declarar uma variável `$angle` para guardar o valor do cálculo do ângulo, perceba que usei o método `round()` a fim de fixar em 2 as casas decimais. 
+  - Depois adicionei o `$angle` com a indexando com a `$key` no array `$angles`.
+  
+  
+  A fim de guardar a seção do gráfico no banco de dados criei um Model. Meu primeiro passo foi rodar o comando:
+  
+      php artisan make:model Sections
+  
+  O arquivo foi gerado em `app/Models`. Abrindo o arquivo, adicionei o seguinte trecho de código:
+  
+  ~~~~PHP
+  protected $fillable = ['name', 'value'];
+  ~~~~
+  
+  Isso é necessário para indicar que campos podem ser criados usando o método `Section::create()`.
+  
+  Em seguida, precisei configurar a rota POST. Fiz isso entrando na pasta routes e dentro do arquivo `api.php` eu fiz uma função para a rota `'/angles'`, da seguinte maneira:
+  
+  ~~~~PHP
+  Route::post('/angles', function (Request $request){
+  $json = $request->getContent();
+  $data = json_decode($json, true);
+  $items = [];
+  foreach($data as $key => $value){
+    $items[$key] = $value;
+  }
+  foreach($items as $key => $value){
+    $section = Section::create([
+      'name'=> $key, 'value' => $value
+    ]);
+  }
+  $response = findAngles($items);
+  return response()->json($response, 200);
+});
+  ~~~~
+  
+  - Nessa função eu recebo um parâmetro `$request`. Primeiramente pego o conteúdo usando o método `getContent()` dentro da varíavel `$request` e atribuindo a `$json`
+  - Meu próximo passo foi guardar o decode do JSON numa variável `$data` usando o método `json_decode()`, após passar o objeto a ser decodificado passei a flag `true` para avisar o método que os valores são associados. 
+  - Inicio a variável  como um array vazio a fim de guardar as informações de `$data`. 
+  - Inicio um loop foreach em `$data` para alimentar a `$items` indexando chave e valor, como feito na função `findAngles()`
+  - Em seguida crio outro foreach, dessa vez em `$items` para guardar os dados do JSON recebido no banco MySQL, faço isso usando o Section::create(), guardando os itens individualmente. No parâmetro name atribuo a chave do objeto, no value atribuo o valor.
+  - Por fim, inicio uma variável `$response` e atribuo seu valor como o retorno da função `findAngles()`, passando `$items`.
+  - No retorno na função, devolvo uma response em json com a variável `$response` e o status 200.
